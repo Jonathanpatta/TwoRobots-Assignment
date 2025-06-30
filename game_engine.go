@@ -45,8 +45,8 @@ type GameEngine struct {
 	state    *GameState
 }
 
-func (ge *GameEngine) PrintGameState() {
-	state := ge.state
+func (g *GameEngine) PrintGameState() {
+	state := g.state
 
 	fmt.Println("\n=== GAME STATE ===")
 	for playerID, player := range state.Players {
@@ -68,9 +68,13 @@ func (ge *GameEngine) PrintGameState() {
 	fmt.Println("==================")
 }
 
-func (g *GameEngine) PlayCard(playerId string, cardId string) {
+func (g *GameEngine) PlayCard(playerId string, cardId string) error {
 	//get player
-	player := g.state.Players[playerId]
+	player, ok := g.state.Players[playerId]
+	if !ok {
+		return fmt.Errorf("player %s not found", playerId)
+	}
+
 	//get card from hand
 	var card *Card
 	cardIndex := -1
@@ -81,29 +85,39 @@ func (g *GameEngine) PlayCard(playerId string, cardId string) {
 			break
 		}
 	}
+	if card == nil {
+		return fmt.Errorf("card %s not found in hand", cardId)
+	}
 	//remove card from hand
 	player.Hand = append(player.Hand[:cardIndex], player.Hand[cardIndex+1:]...)
 	//execute all abilities
 	for _, ability := range card.Abilities {
 		if ability.Type == "instant" {
-			g.ExecuteAbility(card, ability, 0)
+			err := g.ExecuteAbility(card, ability, 0)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	//process queue
-	g.ProcessEventQueue()
+	err := g.ProcessEventQueue()
+	if err != nil {
+		return err
+	}
 	//move card to graveyard
-	player.Graveyard = append(player.Graveyard, card)
+	g.state.Players[playerId].Graveyard = append(g.state.Players[playerId].Graveyard, card)
 	//change turn
 	if g.state.Turn == "player1" {
 		g.state.Turn = "player2"
 	} else {
 		g.state.Turn = "player1"
 	}
+	return nil
 }
 
-func (g *GameEngine) ExecuteAbility(source *Card, ability Ability, depth int) {
+func (g *GameEngine) ExecuteAbility(source *Card, ability Ability, depth int) error {
 	if depth > g.maxDepth {
-		return
+		return fmt.Errorf("max depth of %d exceeded", g.maxDepth)
 	}
 	//check Ability Effect and handle appropriately
 	switch ability.Effect {
@@ -111,32 +125,44 @@ func (g *GameEngine) ExecuteAbility(source *Card, ability Ability, depth int) {
 		g.DestroyStack(source, depth)
 		break
 	case "salvage_self":
-		g.SalvageSelf(source, depth)
+		err := g.SalvageSelf(source, depth)
+		if err != nil {
+			return err
+		}
 		break
 	default:
-		return
+		return fmt.Errorf("unknown ability effect: %s", ability.Effect)
 	}
+	return nil
 }
 
-func (g *GameEngine) ProcessEventQueue() {
+func (g *GameEngine) ProcessEventQueue() error {
 	//while event queue is not empty
 	//process event
 
 	for len(g.state.EventQueue) > 0 {
 		event := g.state.EventQueue[0]
 		g.state.EventQueue = g.state.EventQueue[1:]
-		g.ProcessEvent(event)
+		err := g.ProcessEvent(event)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (g *GameEngine) ProcessEvent(event Event) {
+func (g *GameEngine) ProcessEvent(event Event) error {
 	fmt.Println("ProcessEvent:", event.ID)
 	if event.Depth > g.maxDepth {
-		return
+		return fmt.Errorf("max depth of %d exceeded", g.maxDepth)
 	}
 
 	switch event.ID {
 	case "destroy_card":
-		g.DestroyCard(event)
+		err := g.DestroyCard(event)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }

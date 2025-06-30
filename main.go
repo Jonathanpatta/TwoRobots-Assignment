@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func InitializeGameScenario() *GameEngine {
 	card1 := &Card{
 		ID:    "1",
@@ -57,7 +59,10 @@ func main() {
 	ge := InitializeGameScenario()
 
 	ge.PrintGameState()
-	ge.PlayCard("player1", "1")
+	err := ge.PlayCard("player1", "1")
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	ge.PrintGameState()
 }
