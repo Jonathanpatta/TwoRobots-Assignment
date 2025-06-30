@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -36,6 +37,8 @@ type Event struct {
 	Type   string
 	Player string
 	Depth  int
+	Source *Card
+	Target *Card
 }
 
 type GameEngine struct {
@@ -44,20 +47,69 @@ type GameEngine struct {
 
 func (g *GameEngine) PlayCard(playerId string, cardId string) {
 	//get player
+	player := g.state.Players[playerId]
 	//get card from hand
+	var card *Card
+	cardIndex := -1
+	for i, c := range player.Hand {
+		if c.ID == cardId {
+			card = c
+			cardIndex = i
+			break
+		}
+	}
 	//remove card from hand
+	player.Hand = append(player.Hand[:cardIndex], player.Hand[cardIndex+1:]...)
 	//execute all abilities
+	for _, ability := range card.Abilities {
+		if ability.Type == "instant" {
+			g.ExecuteAbility(card, ability)
+		}
+	}
 	//process queue
+	g.ProcessEventQueue()
 	//move card to graveyard
+	player.Graveyard = append(player.Graveyard, card)
 	//change turn
+	if g.state.Turn == "player1" {
+		g.state.Turn = "player2"
+	} else {
+		g.state.Turn = "player1"
+	}
 }
 
 func (g *GameEngine) ExecuteAbility(source *Card, ability Ability) {
 	//check Ability Effect and handle appropriately
+	switch ability.Effect {
+	case "destroy_stack":
+		for _, card := range g.state.Players["player2"].Stack {
+			event := Event{
+				ID:     "destroy card",
+				Source: source,
+				Target: card,
+			}
+			g.state.EventQueue = append(g.state.EventQueue, event)
+		}
+		break
+	case "salvage_self":
+		break
+	default:
+		return
+	}
 }
 func (g *GameEngine) ProcessEventQueue() {
 	//while event queue is not empty
 	//process event
+
+	for len(g.state.EventQueue) > 0 {
+		event := g.state.EventQueue[0]
+		g.state.EventQueue = g.state.EventQueue[1:]
+		g.ProcessEvent(event)
+	}
+}
+
+func (g *GameEngine) ProcessEvent(event Event) {
+	fmt.Println("ProcessEvent:", event.ID)
 }
 
 func main() {
@@ -99,7 +151,7 @@ func main() {
 		Graveyard: make([]*Card, 0),
 	}
 
-	ge.state.Players["player1"].Stack = append(ge.state.Players["player1"].Stack, card1)
+	ge.state.Players["player1"].Hand = append(ge.state.Players["player1"].Hand, card1)
 
 	ge.state.Players["player2"] = &Player{
 		ID:        "player2",
