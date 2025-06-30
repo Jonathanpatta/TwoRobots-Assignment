@@ -3,6 +3,14 @@ package main
 import "fmt"
 
 func (g *GameEngine) DestroyStack(source *Card, depth int) {
+
+	//player:= "player1"
+	enemy := "player2"
+	if source.Owner == "player2" {
+		//player = "player2"
+		enemy = "player1"
+	}
+	fmt.Println("Destroying Stack of ", enemy)
 	for _, card := range g.state.Players["player2"].Stack {
 		event := Event{
 			ID:     "destroy_card",
@@ -15,7 +23,7 @@ func (g *GameEngine) DestroyStack(source *Card, depth int) {
 }
 
 func (g *GameEngine) SalvageSelf(source *Card, depth int) {
-	fmt.Println("salvage_self")
+	fmt.Println("Salvaging Self of ", source)
 	player := g.state.Players[source.Owner]
 	player.Hand = append(player.Hand, source)
 	for i, graveyardCard := range player.Graveyard {
@@ -29,7 +37,7 @@ func (g *GameEngine) SalvageSelf(source *Card, depth int) {
 func (g *GameEngine) DestroyCard(event Event) {
 	affectedCard := event.Target
 
-	fmt.Println("AffectedCard:", affectedCard)
+	fmt.Println("Destroying Card:", affectedCard)
 	player := g.state.Players[event.Target.Owner]
 	for i, stackCard := range player.Stack {
 		if stackCard.ID == affectedCard.ID {
@@ -39,6 +47,7 @@ func (g *GameEngine) DestroyCard(event Event) {
 	}
 	for _, ability := range affectedCard.Abilities {
 		if ability.Trigger == "on_destroy" {
+			fmt.Println("On Destroy Ability Triggered")
 			g.ExecuteAbility(affectedCard, ability, event.Depth+1)
 		}
 	}

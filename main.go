@@ -1,10 +1,6 @@
 package main
 
-import (
-	"fmt"
-)
-
-func InitializeGameScenario() (*Card, *GameEngine) {
+func InitializeGameScenario() *GameEngine {
 	card1 := &Card{
 		ID:    "1",
 		Owner: "player1",
@@ -53,18 +49,15 @@ func InitializeGameScenario() (*Card, *GameEngine) {
 		Stack:     make([]*Card, 0),
 		Graveyard: make([]*Card, 0),
 	}
-	return card2, ge
+	ge.state.Players["player2"].Stack = append(ge.state.Players["player2"].Stack, card2)
+	return ge
 }
 
 func main() {
-	card2, ge := InitializeGameScenario()
+	ge := InitializeGameScenario()
 
-	ge.state.Players["player2"].Stack = append(ge.state.Players["player2"].Stack, card2)
-	fmt.Println(ge.state.Players["player1"].Hand, ge.state.Players["player2"].Hand)
-	fmt.Println(ge.state.Players["player1"].Stack, ge.state.Players["player2"].Stack)
-	fmt.Println(ge.state.Players["player1"].Graveyard, ge.state.Players["player2"].Graveyard)
+	ge.PrintGameState()
 	ge.PlayCard("player1", "1")
-	fmt.Println(ge.state.Players["player1"].Hand, ge.state.Players["player2"].Hand)
-	fmt.Println(ge.state.Players["player1"].Stack, ge.state.Players["player2"].Stack)
-	fmt.Println(ge.state.Players["player1"].Graveyard, ge.state.Players["player2"].Graveyard)
+
+	ge.PrintGameState()
 }

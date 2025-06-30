@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Player struct {
@@ -42,6 +43,29 @@ type Event struct {
 type GameEngine struct {
 	maxDepth int
 	state    *GameState
+}
+
+func (ge *GameEngine) PrintGameState() {
+	state := ge.state
+
+	fmt.Println("\n=== GAME STATE ===")
+	for playerID, player := range state.Players {
+		fmt.Printf("\n%s:\n", strings.ToUpper(playerID))
+		fmt.Printf("  Hand (%d): ", len(player.Hand))
+		for _, card := range player.Hand {
+			fmt.Printf("%s ", card.ID)
+		}
+		fmt.Printf("\n  Stack (%d): ", len(player.Stack))
+		for _, card := range player.Stack {
+			fmt.Printf("%s ", card.ID)
+		}
+		fmt.Printf("\n  Graveyard (%d): ", len(player.Graveyard))
+		for _, card := range player.Graveyard {
+			fmt.Printf("%s ", card.ID)
+		}
+		fmt.Println()
+	}
+	fmt.Println("==================")
 }
 
 func (g *GameEngine) PlayCard(playerId string, cardId string) {
