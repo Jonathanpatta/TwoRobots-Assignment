@@ -42,7 +42,8 @@ type Event struct {
 }
 
 type GameEngine struct {
-	state *GameState
+	AvailableCards map[string]*Card
+	state          *GameState
 }
 
 func (g *GameEngine) PlayCard(playerId string, cardId string) {
@@ -92,6 +93,15 @@ func (g *GameEngine) ExecuteAbility(source *Card, ability Ability) {
 		}
 		break
 	case "salvage_self":
+		fmt.Println("salvage_self")
+		player := g.state.Players[source.Owner]
+		player.Hand = append(player.Hand, source)
+		for i, graveyardCard := range player.Graveyard {
+			if graveyardCard.ID == source.ID {
+				player.Graveyard = append(player.Graveyard[:i], player.Graveyard[i+1:]...)
+				break
+			}
+		}
 		break
 	default:
 		return
@@ -110,6 +120,25 @@ func (g *GameEngine) ProcessEventQueue() {
 
 func (g *GameEngine) ProcessEvent(event Event) {
 	fmt.Println("ProcessEvent:", event.ID)
+
+	affectedCard := event.Target
+
+	fmt.Println("AffectedCard:", affectedCard)
+	switch event.ID {
+	case "destroy card":
+		player := g.state.Players[event.Target.Owner]
+		for i, stackCard := range player.Stack {
+			if stackCard.ID == affectedCard.ID {
+				player.Stack = append(player.Stack[:i], player.Stack[i+1:]...)
+				break
+			}
+		}
+		for _, ability := range affectedCard.Abilities {
+			if ability.Trigger == "on_destroy" {
+				g.ExecuteAbility(affectedCard, ability)
+			}
+		}
+	}
 }
 
 func main() {
@@ -127,12 +156,13 @@ func main() {
 
 	card2 := &Card{
 		ID:    "2",
-		Owner: "player1",
+		Owner: "player2",
 		Abilities: []Ability{
 			{
-				Type:   "triggered",
-				Effect: "salvage_self",
-				Target: "player_hand",
+				Type:    "triggered",
+				Trigger: "on_destroy",
+				Effect:  "salvage_self",
+				Target:  "player_hand",
 			},
 		},
 	}
@@ -141,6 +171,10 @@ func main() {
 		state: &GameState{
 			Players:    make(map[string]*Player),
 			EventQueue: make([]Event, 0),
+		},
+		AvailableCards: map[string]*Card{
+			"1": card1,
+			"2": card2,
 		},
 	}
 
@@ -161,6 +195,11 @@ func main() {
 	}
 
 	ge.state.Players["player2"].Stack = append(ge.state.Players["player2"].Stack, card2)
-
+	fmt.Println(ge.state.Players["player1"].Hand, ge.state.Players["player2"].Hand)
+	fmt.Println(ge.state.Players["player1"].Stack, ge.state.Players["player2"].Stack)
+	fmt.Println(ge.state.Players["player1"].Graveyard, ge.state.Players["player2"].Graveyard)
 	ge.PlayCard("player1", "1")
+	fmt.Println(ge.state.Players["player1"].Hand, ge.state.Players["player2"].Hand)
+	fmt.Println(ge.state.Players["player1"].Stack, ge.state.Players["player2"].Stack)
+	fmt.Println(ge.state.Players["player1"].Graveyard, ge.state.Players["player2"].Graveyard)
 }
