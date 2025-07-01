@@ -34,8 +34,9 @@ func InitializeTestGameScenario() (*GameEngine, *Card) {
 	card3 := *card2
 	card3.ID = "3"
 
-	card4 := *card2
+	card4 := *card1
 	card4.ID = "4"
+	card4.Owner = "player2"
 
 	ge := InitializeGameEngine()
 
@@ -60,5 +61,30 @@ func TestGameEngine_ExecuteAbility(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	ge.PrintGameState()
+}
+
+func TestGameEngine_ProcessEvent(t *testing.T) {
+	ge, card1 := InitializeTestGameScenario()
+
+	ge.PrintGameState()
+
+	event := Event{
+		Name:   "destroy_card",
+		Source: card1,
+		Target: ge.state.Players["player2"].Stack[0],
+		Depth:  0,
+	}
+
+	err := ge.ProcessEvent(event)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = ge.ProcessEventQueue()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	ge.PrintGameState()
 }
