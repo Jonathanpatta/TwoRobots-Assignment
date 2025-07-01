@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -49,11 +48,11 @@ func InitializeTestGameScenario() (*GameEngine, *Card) {
 }
 
 func TestGameEngine_ExecuteAbility(t *testing.T) {
-	ge, _ := InitializeTestGameScenario()
+	ge, card1 := InitializeTestGameScenario()
 
-	err := ge.PlayCard("player1", "1")
+	err := ge.ExecuteAbility(card1, card1.Abilities[0], 0)
 	if err != nil {
-		fmt.Println(err)
+		t.Fatal(err)
 	}
 	ge.PrintGameState()
 }
