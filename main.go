@@ -8,6 +8,7 @@ func InitializeGameEngine() *GameEngine {
 		state: &GameState{
 			Players:    make(map[string]*Player),
 			EventQueue: make([]Event, 0),
+			Turn:       "player1",
 		},
 	}
 
@@ -33,6 +34,7 @@ func InitializeGameScenario() *GameEngine {
 		Owner: "player1",
 		Abilities: []Ability{
 			{
+				Name:   "Stack Destroyer",
 				Type:   "instant",
 				Effect: "destroy_stack",
 				Target: "enemy_stack",
@@ -45,6 +47,7 @@ func InitializeGameScenario() *GameEngine {
 		Owner: "player2",
 		Abilities: []Ability{
 			{
+				Name:    "Restoration",
 				Type:    "triggered",
 				Trigger: "on_destroy",
 				Effect:  "salvage_self",

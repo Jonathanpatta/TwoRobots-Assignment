@@ -19,6 +19,7 @@ type Card struct {
 }
 
 type Ability struct {
+	Name    string
 	Type    string
 	Trigger string
 	Effect  string
@@ -32,7 +33,7 @@ type GameState struct {
 }
 
 type Event struct {
-	ID     string
+	Name   string
 	Type   string
 	Player string
 	Depth  int
@@ -69,6 +70,8 @@ func (g *GameEngine) PrintGameState() {
 }
 
 func (g *GameEngine) PlayCard(playerId string, cardId string) error {
+
+	fmt.Printf("Player (%s) playing Card(%s)\n", playerId, cardId)
 	//get player
 	player, ok := g.state.Players[playerId]
 	if !ok {
@@ -119,6 +122,7 @@ func (g *GameEngine) ExecuteAbility(source *Card, ability Ability, depth int) er
 	if depth > g.maxDepth {
 		return fmt.Errorf("max depth of %d exceeded", g.maxDepth)
 	}
+	fmt.Printf("Executing Ability (%s) of Card(%s)\n", ability.Name, source.ID)
 	//check Ability Effect and handle appropriately
 	err := g.ExecuteAbilityEffect(source, ability, depth)
 	if err != nil {
@@ -143,7 +147,7 @@ func (g *GameEngine) ProcessEventQueue() error {
 }
 
 func (g *GameEngine) ProcessEvent(event Event) error {
-	fmt.Println("ProcessEvent:", event.ID)
+	fmt.Println("Processing Event:", event.Name)
 	if event.Depth > g.maxDepth {
 		return fmt.Errorf("max depth of %d exceeded", g.maxDepth)
 	}

@@ -23,7 +23,7 @@ func (g *GameEngine) ExecuteAbilityEffect(source *Card, ability Ability, depth i
 }
 
 func (g *GameEngine) ExecuteEventEffect(event Event) error {
-	switch event.ID {
+	switch event.Name {
 	case "destroy_card":
 		err := g.DestroyCard(event)
 		if err != nil {
@@ -44,7 +44,7 @@ func (g *GameEngine) DestroyStack(source *Card, depth int) {
 	fmt.Println("Destroying Stack of ", enemy)
 	for _, card := range g.state.Players["player2"].Stack {
 		event := Event{
-			ID:     "destroy_card",
+			Name:   "destroy_card",
 			Source: source,
 			Target: card,
 			Depth:  depth,
