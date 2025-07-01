@@ -105,7 +105,7 @@ func (g *GameEngine) PlayCard(playerId string, cardId string) error {
 		return err
 	}
 	//move card to graveyard
-	g.state.Players[playerId].Graveyard = append(g.state.Players[playerId].Graveyard, card)
+	player.Graveyard = append(player.Graveyard, card)
 	//change turn
 	if g.state.Turn == "player1" {
 		g.state.Turn = "player2"
@@ -120,18 +120,9 @@ func (g *GameEngine) ExecuteAbility(source *Card, ability Ability, depth int) er
 		return fmt.Errorf("max depth of %d exceeded", g.maxDepth)
 	}
 	//check Ability Effect and handle appropriately
-	switch ability.Effect {
-	case "destroy_stack":
-		g.DestroyStack(source, depth)
-		break
-	case "salvage_self":
-		err := g.SalvageSelf(source, depth)
-		if err != nil {
-			return err
-		}
-		break
-	default:
-		return fmt.Errorf("unknown ability effect: %s", ability.Effect)
+	err := g.ExecuteAbilityEffect(source, ability, depth)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -157,12 +148,9 @@ func (g *GameEngine) ProcessEvent(event Event) error {
 		return fmt.Errorf("max depth of %d exceeded", g.maxDepth)
 	}
 
-	switch event.ID {
-	case "destroy_card":
-		err := g.DestroyCard(event)
-		if err != nil {
-			return err
-		}
+	err := g.ExecuteEventEffect(event)
+	if err != nil {
+		return err
 	}
 	return nil
 }

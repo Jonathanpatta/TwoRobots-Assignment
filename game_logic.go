@@ -5,6 +5,34 @@ import (
 	"fmt"
 )
 
+func (g *GameEngine) ExecuteAbilityEffect(source *Card, ability Ability, depth int) error {
+	switch ability.Effect {
+	case "destroy_stack":
+		g.DestroyStack(source, depth)
+		break
+	case "salvage_self":
+		err := g.SalvageSelf(source, depth)
+		if err != nil {
+			return err
+		}
+		break
+	default:
+		return fmt.Errorf("unknown ability effect: %s", ability.Effect)
+	}
+	return nil
+}
+
+func (g *GameEngine) ExecuteEventEffect(event Event) error {
+	switch event.ID {
+	case "destroy_card":
+		err := g.DestroyCard(event)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (g *GameEngine) DestroyStack(source *Card, depth int) {
 
 	//player:= "player1"
