@@ -75,10 +75,12 @@ func (g *GameEngine) DestroyCard(event Event) error {
 	for i, stackCard := range player.Stack {
 		if stackCard.ID == affectedCard.ID {
 			player.Stack = append(player.Stack[:i], player.Stack[i+1:]...)
+			player.Graveyard = append(player.Graveyard, stackCard)
 			found = true
 			break
 		}
 	}
+
 	if !found {
 		return errors.New("card not found in player stack")
 	}
