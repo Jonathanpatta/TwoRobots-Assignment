@@ -10,6 +10,7 @@ func InitializeTestGameScenario() (*GameEngine, *Card) {
 		Owner: "player1",
 		Abilities: []Ability{
 			{
+				Name:   "Stack Destroyer",
 				Type:   "instant",
 				Effect: "destroy_stack",
 				Target: "enemy_stack",
@@ -22,6 +23,7 @@ func InitializeTestGameScenario() (*GameEngine, *Card) {
 		Owner: "player2",
 		Abilities: []Ability{
 			{
+				Name:    "Restoration",
 				Type:    "triggered",
 				Trigger: "on_destroy",
 				Effect:  "salvage_self",
@@ -51,6 +53,10 @@ func TestGameEngine_ExecuteAbility(t *testing.T) {
 	ge, card1 := InitializeTestGameScenario()
 
 	err := ge.ExecuteAbility(card1, card1.Abilities[0], 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = ge.ProcessEventQueue()
 	if err != nil {
 		t.Fatal(err)
 	}
